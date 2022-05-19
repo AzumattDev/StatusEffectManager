@@ -1,4 +1,4 @@
-﻿# Status Effect Manager
+# Status Effect Manager
 
 Can be used to easily add new status effects to Valheim.
 
