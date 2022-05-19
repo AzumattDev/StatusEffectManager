@@ -15,15 +15,34 @@ using UnityEngine;
 namespace StatusEffectManager;
 
 [PublicAPI]
+[Description("The ItemDrop effect to apply the status effect")]
+public enum EffectType
+{
+    Equip,
+    Attack,
+    Consume,
+    Set
+}
+
+public struct SE_Item
+{
+    public StatusEffect Effect;
+    public EffectType Type;
+}
+
+[PublicAPI]
 public class CustomSE
 {
     private static readonly List<CustomSE> RegisteredEffects = new();
     private static readonly Dictionary<StatusEffect, CustomSE> CustomEffectMap = new();
     internal static readonly List<StatusEffect> CustomSEs = new();
-    internal static readonly Dictionary<StatusEffect, string> AddToPrefabs = new();
+    internal static readonly Dictionary<SE_Item, string> AddToPrefabs = new();
 
     [Description("Instance of the StatusEffect.")]
     public readonly StatusEffect Effect;
+
+    [Description("Set the type of effect you are adding. If the item can attack, consume, or be equipped, change this to correspond.")]
+    public EffectType Type;
 
     private string _folderName = "icons";
     private AssetBundle? _assetBundle;
@@ -151,9 +170,14 @@ public class CustomSE
         throw new FileNotFoundException($"Could not find a file named {name} for the effect icon");
     }
 
-    public void AddSEToPrefab(StatusEffect customSE, string prefabName)
+    [Description("Adds the CustomSE to a prefab by adding it on ZNetScene awake. The effect type will be used to determine when the effect applies.")]
+    public void AddSEToPrefab(CustomSE customSE, string prefabName)
     {
-        AddToPrefabs.Add(customSE, prefabName);
+        SE_Item test = new()
+        {
+            Effect = customSE.Effect, Type = customSE.Type
+        };
+        AddToPrefabs.Add(test, prefabName);
     }
 
     private static BaseUnityPlugin? _plugin;
@@ -353,17 +377,62 @@ public static class EffectManager
     [HarmonyPriority(Priority.VeryHigh)]
     private static void Patch_ZNetSceneAwake(ZNetScene __instance)
     {
-        foreach (KeyValuePair<StatusEffect, string> valuePair in CustomSE.AddToPrefabs)
+        foreach (KeyValuePair<SE_Item, string> valuePair in CustomSE.AddToPrefabs)
         {
-            GameObject? prefab = __instance.GetPrefab(valuePair.Value);
-            ItemDrop? itemDrop = prefab.GetComponent<ItemDrop>();
-            if (itemDrop)
-                itemDrop.m_itemData.m_shared.m_equipStatusEffect =
-                    valuePair.Key;
-            else
+            try
+            {
+                GameObject? prefab = __instance.GetPrefab(valuePair.Value);
+                ItemDrop? itemDrop =
+                    prefab ? prefab.GetComponent<ItemDrop>() : prefab.GetComponentInChildren<ItemDrop>();
+                Aoe? aoe = prefab ? prefab.GetComponent<Aoe>() : prefab.GetComponentInChildren<Aoe>();
+                EffectArea? effectArea =
+                    prefab ? prefab.GetComponent<EffectArea>() : prefab.GetComponentInChildren<EffectArea>();
+                if (itemDrop)
+                {
+                    switch (valuePair.Key.Type)
+                    {
+                        case EffectType.Equip:
+                            itemDrop.m_itemData.m_shared.m_equipStatusEffect =
+                                valuePair.Key.Effect;
+                            break;
+                        case EffectType.Attack:
+                            itemDrop.m_itemData.m_shared.m_attackStatusEffect =
+                                valuePair.Key.Effect;
+                            break;
+                        case EffectType.Consume:
+                            itemDrop.m_itemData.m_shared.m_consumeStatusEffect =
+                                valuePair.Key.Effect;
+                            break;
+                        case EffectType.Set:
+                            itemDrop.m_itemData.m_shared.m_setSize = 1;
+                            itemDrop.m_itemData.m_shared.m_setName = valuePair.Key.Effect.name;
+                            itemDrop.m_itemData.m_shared.m_setStatusEffect =
+                                valuePair.Key.Effect;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+
+                else if (aoe)
+                {
+                    aoe.m_statusEffect = valuePair.Key.Effect.name;
+                }
+
+                else if (effectArea)
+                {
+                    effectArea.m_statusEffect = valuePair.Key.Effect.name;
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"The prefab '{prefab.name}' does not have an ItemDrop, AOE, or EffectArea component. Cannot add the StatusEffect to the prefab.");
+                }
+            }
+            catch (Exception e)
             {
                 Debug.LogWarning(
-                    $"The prefab '{prefab.name}' does not have an ItemDrop component. Cannot add the StatusEffect to the prefab.");
+                    $"BROKE");
             }
         }
     }

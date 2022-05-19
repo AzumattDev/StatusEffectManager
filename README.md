@@ -52,6 +52,7 @@ namespace MyEffects
 		{
 			CustomSE mycooleffect = new CustomSE("se_toxicity", "se_toxicity_effect", "StatusEffects");
 			mycooleffect.Name.English("Toxicity"); // You can use this to fix the display name in code
+			mycooleffect.Type = EffectType.Equip;
 			mycooleffect.Icon = "MyCoolIcon.png"; // Use this to add an icon (64x64) for the status effect. Put your icon in an "icons" folder
 			mycooleffect.Name.German("Toxizität"); // Or add translations for other languages
 			mycooleffect.Effect.m_startMessageType = MessageHud.MessageType.Center; // Specify where the start effect message shows
@@ -59,7 +60,7 @@ namespace MyEffects
 			mycooleffect.Effect.m_stopMessageType = MessageHud.MessageType.Center; // Specify where the stop effect message shows
 			mycooleffect.Effect.m_stopMessage = "Not cool anymore, ending effect."; // What the stop message says
 			mycooleffect.Effect.m_tooltip = "<color=orange>Toxic damage over time</color>"; // Tooltip that will describe the effect applied to the player
-			mycooleffect.AddSEToPrefab(test.Effect, "SwordIron"); // Adds the status effect to Iron swords. Applies when equipped.
+			mycooleffect.AddSEToPrefab(test, "SwordIron"); // Adds the status effect to Iron swords. Applies when equipped.
 			
 			CustomSE drunkeffect = new CustomSE("se_drunk", "se_drunk_effect");
 			drunkeffect.Name.English("Drunk"); // You can use this to fix the display name in code
@@ -70,11 +71,12 @@ namespace MyEffects
 			drunkeffect.Effect.m_stopMessageType = MessageHud.MessageType.Center; // Specify where the stop effect message shows
 			drunkeffect.Effect.m_stopMessage = "Sober...again."; // What the stop message says
 			drunkeffect.Effect.m_tooltip = "<color=red>Your vision is blurry</color>"; // Tooltip that will describe the effect applied to the player
-			drunkeffect.AddSEToPrefab(test.Effect, "TankardAnniversary"); // Adds the status effect to the Anniversary Tankard. Applies when equipped.
+			drunkeffect.AddSEToPrefab(test, "TankardAnniversary"); // Adds the status effect to the Anniversary Tankard. Applies when equipped.
 			
 			// Create a new status effect in code and apply it to a prefab.
 			CustomSE codeSE = new CustomSE("CodeStatusEffect");
 			codeSE.Name.English("New Effect");
+			codeSE.Type = EffectType.Consume;
 			codeSE.Icon = "ModDevPower.png";
 			codeSE.Name.German("Betrunken"); // Or add translations for other languages
 			codeSE.Effect.m_startMessageType = MessageHud.MessageType.Center; // Specify where the start effect message shows
@@ -82,7 +84,7 @@ namespace MyEffects
 			codeSE.Effect.m_stopMessageType = MessageHud.MessageType.Center; // Specify where the stop effect message shows
 			codeSE.Effect.m_stopMessage = "Mod Dev power, removed."; // What the stop message says
 			codeSE.Effect.m_tooltip = "<color=green>You now have Mod Dev POWER!</color>"; // Tooltip that will describe the effect applied to the player
-			codeSE.AddSEToPrefab(test.Effect, "SwordCheat"); // Adds the status effect to the Cheat Sword. Applies when equipped.
+			codeSE.AddSEToPrefab(test, "SwordCheat"); // Adds the status effect to the Cheat Sword. Applies when equipped.
 		}
 	}
 }
